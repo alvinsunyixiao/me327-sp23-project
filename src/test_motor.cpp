@@ -1,9 +1,10 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+#include "debug.hpp"
 #include "motor.hpp"
 
-Motors motors(4);
+Motors motors(1);
 
 void setup() {
   // initialize I2C
@@ -11,12 +12,18 @@ void setup() {
 
   // initialize motor manager
   motors.begin();
+
+  SerialUSB.begin();
 }
 
 // initial direction pointing forward
 uint32_t direction = 0;
 
 void loop() {
+  DEBUG_HEADER;
+  DEBUG_PRINT("setting direction ");
+  DEBUG_PRINTLN(direction);
+
   // output vibration for current direction
   motors.setDirection(direction);
 

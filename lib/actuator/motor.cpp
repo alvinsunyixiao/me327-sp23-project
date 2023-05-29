@@ -1,4 +1,5 @@
 #include "motor.hpp"
+#include "debug.hpp"
 
 #define PCAADDR 0x70  // address of I2C mux
 
@@ -12,6 +13,9 @@ void Motors::begin() {
     this->selectDevice(i);
     drv2605_.begin();
     drv2605_.setMode(DRV2605_MODE_REALTIME);
+    // use unsigned data format for RTP data
+    drv2605_.writeRegister8(DRV2605_REG_CONTROL3, 
+      drv2605_.readRegister8(DRV2605_REG_CONTROL3) | 0x8);
   }
 }
 
@@ -37,11 +41,13 @@ bool Motors::setDirection(uint32_t direction) {
     int32_t angle_diff = angle_offset - direction;
 
     // motor i is close to the specified direction
+    uint32_t amplitude  = 0;
     if (abs(angle_diff) <= angle_between_motors_) {
       // linear interpolation
-      flag &= this->setAmplitude(i, 
-        (angle_between_motors_ - abs(angle_diff)) / (angle_between_motors_ >> 8));
+      amplitude = (angle_between_motors_ - abs(angle_diff)) / (angle_between_motors_ >> 8);
+      amplitude = min(amplitude, 255UL);
     }
+    flag &= this->setAmplitude(i, amplitude);
   }
 
   return flag;
