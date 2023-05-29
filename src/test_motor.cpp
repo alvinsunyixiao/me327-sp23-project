@@ -4,7 +4,11 @@
 #include "debug.hpp"
 #include "motor.hpp"
 
-Motors motors(1);
+#ifndef NUM_MOTORS
+#define NUM_MOTORS 8
+#endif
+
+Motors motors(NUM_MOTORS);
 
 void setup() {
   // initialize I2C
@@ -28,7 +32,7 @@ void loop() {
   motors.setDirection(direction);
 
   // rotate the direction by fixed amound
-  direction += (1 << 28);
+  direction += (1 << 27);
 
   // 1-second delay
   delay(1000);

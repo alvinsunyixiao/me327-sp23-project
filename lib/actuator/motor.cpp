@@ -11,7 +11,12 @@ void Motors::begin() {
   // initialize all motors
   for (size_t i = 0; i < num_motors_; ++i) {
     this->selectDevice(i);
-    drv2605_.begin();
+    if (!drv2605_.begin()) {
+      DEBUG_HEADER;
+      DEBUG_PRINT("Failed to initialize DRV2605 #");
+      DEBUG_PRINTLN(i);
+    }
+    
     drv2605_.setMode(DRV2605_MODE_REALTIME);
     // use unsigned data format for RTP data
     drv2605_.writeRegister8(DRV2605_REG_CONTROL3, 
@@ -44,8 +49,7 @@ bool Motors::setDirection(uint32_t direction) {
     uint32_t amplitude  = 0;
     if (abs(angle_diff) <= angle_between_motors_) {
       // linear interpolation
-      amplitude = (angle_between_motors_ - abs(angle_diff)) / (angle_between_motors_ >> 8);
-      amplitude = min(amplitude, 255UL);
+      amplitude = (angle_between_motors_ - abs(angle_diff)) / ((angle_between_motors_ >> 8) + 1);
     }
     flag &= this->setAmplitude(i, amplitude);
   }
