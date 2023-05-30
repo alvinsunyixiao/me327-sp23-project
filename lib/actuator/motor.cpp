@@ -18,13 +18,10 @@ void Motors::begin() {
     }
     
     drv2605_.setMode(DRV2605_MODE_REALTIME);
-    // use unsigned data format for RTP data
-    drv2605_.writeRegister8(DRV2605_REG_CONTROL3, 
-      drv2605_.readRegister8(DRV2605_REG_CONTROL3) | 0x8);
   }
 }
 
-bool Motors::setAmplitude(size_t idx, uint8_t amplitude) {
+bool Motors::setAmplitude(size_t idx, int8_t amplitude) {
   // select device idx
   if (!selectDevice(idx)) {
     return false;
@@ -46,12 +43,12 @@ bool Motors::setDirection(uint32_t direction) {
     int32_t angle_diff = angle_offset - direction;
 
     // motor i is close to the specified direction
-    uint32_t amplitude  = 0;
-    if (abs(angle_diff) <= angle_between_motors_) {
+    uint32_t amplitude = 0;
+    if ((uint32_t)abs(angle_diff) <= angle_between_motors_) {
       // linear interpolation
-      amplitude = (angle_between_motors_ - abs(angle_diff)) / ((angle_between_motors_ >> 8) + 1);
+      amplitude = (angle_between_motors_ - abs(angle_diff)) / ((angle_between_motors_ >> 7) + 1);
     }
-    flag &= this->setAmplitude(i, amplitude);
+    flag &= this->setAmplitude(i, (int8_t)amplitude);
   }
 
   return flag;

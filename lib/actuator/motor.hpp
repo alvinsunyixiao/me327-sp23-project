@@ -30,11 +30,11 @@ public:
    * @brief Set the vibration amplitude of a specific motor
    * 
    * @param idx         index of the motor to manipulate in [0, num_motors)
-   * @param amplitude   amplitude in [0, 256)
+   * @param amplitude   amplitude in [-128, 127]
    * @return true       if set amplitude is succesful
    * @return false      if idx out of bound
    */
-  bool setAmplitude(size_t idx, uint8_t amplitude);
+  bool setAmplitude(size_t idx, int8_t amplitude);
 
   /**
    * @brief set multiple motor amplitude by giving a direction angle
