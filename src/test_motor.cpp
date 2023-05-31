@@ -17,7 +17,7 @@ void setup() {
   // initialize motor manager
   motors.begin();
 
-  SerialUSB.begin();
+  DEBUG_INIT(115200);
 }
 
 // initial direction pointing forward

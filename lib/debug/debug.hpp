@@ -4,9 +4,11 @@
 
 #ifdef DEBUG
 #ifdef USBCON
+#define DEBUG_INIT(baudrate) SerialUSB.begin()
 #define DEBUG_PRINTLN(msg) SerialUSB.println(msg)
 #define DEBUG_PRINT(msg) SerialUSB.print(msg)
 #else
+#define DEBUG_INIT(baudrate) Serial.begin(baudrate)
 #define DEBUG_PRINTLN(msg) Serial.println(msg)
 #define DEBUG_PRINT(msg) Serial.print(msg)
 #endif
