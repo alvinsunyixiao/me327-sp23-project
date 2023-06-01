@@ -17,7 +17,7 @@ final float INNER_TICK_LENGTH = WINDOW_HEIGHT / 120;
 final float CENTER_X = OUTER_RADIUS + (WINDOW_HEIGHT / 2 - OUTER_RADIUS);
 final float CENTER_Y = WINDOW_HEIGHT / 2;
 final String SERVER_IP_ADDRESS = "192.168.4.1";
-final int SERVER_PORT = 80;
+final int SERVER_PORT = 4242;
 
 float angle_target;
 float angle_mouse;
@@ -28,10 +28,12 @@ Client client;
 /* Initialize the variables here - end */
 
 void setup() {
+  // setup window and canvas
   size(800, 600);
   noSmooth();
   fill(126);
   
+  // connect to ESP32 WiFi server
   client = new Client(this, SERVER_IP_ADDRESS, SERVER_PORT);
 }
 
@@ -48,7 +50,7 @@ float wrapAngle(float angle) {
 }
 
 void drawAngledLine(float angle_world, float start_radius, float end_radius) {
-  float angle = worldToCanvas(angle_world);
+  final float angle = worldToCanvas(angle_world);
   final float x_start = CENTER_X + cos(angle) * start_radius;
   final float x_end = CENTER_X + cos(angle) * end_radius;
   final float y_start = CENTER_Y + sin(angle) * start_radius;
@@ -90,14 +92,15 @@ void drawBackground() {
 }
 
 void drawText() {
-  float angle = wrapAngle(angle_is_set ? angle_target : angle_mouse);
   textSize(25);
   fill(234, 244, 254);
   textAlign(CENTER, BOTTOM);
   text("The target angle is :" + "\n", 0.82 * width, 0.89 * height); 
-  final String def_a_str = str(round(degrees(angle))) + "\u00b0";
+
+  final float angle = wrapAngle(angle_is_set ? angle_target : angle_mouse);
+  final String angle_str = str(round(degrees(angle))) + "\u00b0";
   textSize(50);
-  text(def_a_str, 0.82 * width, 0.93 * height); 
+  text(angle_str, 0.82 * width, 0.93 * height);
 }
 
 void drawAndUpdateMouse() {
@@ -168,7 +171,7 @@ void draw() {
     drawTarget();
   }
   
-  // draw user
+  // draw user orientation
   drawUser();
 } //<>//
 
@@ -203,6 +206,7 @@ void mouseReleased() {
 
 void keyPressed() {
   if (key == CODED) {
+    // control the target angle with left / right keys
     if (angle_is_set) {
       if (keyCode == RIGHT) {
         angle_target -= radians(1);
@@ -212,6 +216,7 @@ void keyPressed() {
       sendTarget();
     } 
   } else if (key == 's') {
+    // send the command to stop all motors
     angle_is_set = false;
     sendStop();
   }

@@ -45,6 +45,12 @@ public:
    */
   bool setDirection(uint32_t direction);
 
+  /**
+   * @brief stop all motor by setting 0 amplitude
+   *
+   * @return true   if all motor is stopped succesfully
+   * @return false  otherwise
+   */
   bool stopAll();
 
 private:

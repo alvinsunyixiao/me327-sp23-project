@@ -12,9 +12,7 @@ void Motors::begin() {
   for (size_t i = 0; i < num_motors_; ++i) {
     this->selectDevice(i);
     if (!drv2605_.begin()) {
-      DEBUG_HEADER;
-      DEBUG_PRINT("Failed to initialize DRV2605 #");
-      DEBUG_PRINTLN(i);
+      DEBUG_PRINTF("Failed to initialize DRV2605 #%u\n", i);
     }
     
     drv2605_.setMode(DRV2605_MODE_REALTIME);

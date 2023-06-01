@@ -6,7 +6,7 @@
 #include "motor.hpp"
 
 Motors motors(8);
-WiFiServer server(80);
+WiFiServer server(4242);
 WiFiClient client;
 
 void setup() {
@@ -22,9 +22,7 @@ void setup() {
   WiFi.mode(WIFI_AP);
   WiFi.softAP("HapticNav", "ME327group9", 10);
   IPAddress ip = WiFi.softAPIP();
-  DEBUG_HEADER;
-  DEBUG_PRINT("AP IP address: ");
-  DEBUG_PRINTLN(ip);
+  DEBUG_PRINTF("AP IP address: %s\n", ip.toString().c_str());
 
   server.begin();
 }
@@ -34,8 +32,7 @@ void loop() {
   if (!client) {
     client = server.available();
     if (client) {
-      DEBUG_HEADER;
-      DEBUG_PRINTLN("Connected to a client");
+      DEBUG_PRINTF("Connected to a client\n");
     }
   }
 
@@ -44,14 +41,13 @@ void loop() {
       uint8_t raw_data[5];
       const size_t num_bytes = client.readBytes(raw_data, sizeof(raw_data));
       if (num_bytes == sizeof(raw_data)) {
-        DEBUG_HEADER;
         if (raw_data[4]) {
           uint32_t *target_angle = (uint32_t*)raw_data;
           motors.setDirection(*target_angle);
-          DEBUG_PRINTF("target angle: %lu\n", *target_angle);
+          DEBUG_PRINTF("recieved target angle: %lu\n", *target_angle);
         } else {
           motors.stopAll();
-          DEBUG_PRINTLN("stop all motors");
+          DEBUG_PRINTF("received stop command\n");
         }
       }
     }
