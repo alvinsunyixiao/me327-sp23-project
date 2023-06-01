@@ -1,6 +1,8 @@
 /**
  * GUI for Haptic Orientation Display
  */
+ 
+import processing.net.*;
 
 /* Initialize the variables here - start */
 
@@ -14,22 +16,45 @@ final float OUTER_TICK_LENGTH = WINDOW_HEIGHT / 100;
 final float INNER_TICK_LENGTH = WINDOW_HEIGHT / 120;
 final float CENTER_X = OUTER_RADIUS + (WINDOW_HEIGHT / 2 - OUTER_RADIUS);
 final float CENTER_Y = WINDOW_HEIGHT / 2;
+final String SERVER_IP_ADDRESS = "192.168.4.1";
+final int SERVER_PORT = 80;
 
 float angle_target;
 float angle_mouse;
-float angle_user_inv = PI / 2;
+float angle_user = 0;
 boolean angle_is_set = false;
+Client client;
 
 /* Initialize the variables here - end */
 
-void drawAngledLine(float angle, float start_radius, float end_radius) {
+void setup() {
+  size(800, 600);
+  noSmooth();
+  fill(126);
+  
+  client = new Client(this, SERVER_IP_ADDRESS, SERVER_PORT);
+}
+
+float canvasToWorld(float angle) {
+  return -angle - PI / 2;
+}
+
+float worldToCanvas(float angle) {
+  return -angle - PI / 2;
+}
+
+float wrapAngle(float angle) {
+  return atan2(sin(angle), cos(angle));
+}
+
+void drawAngledLine(float angle_world, float start_radius, float end_radius) {
+  float angle = worldToCanvas(angle_world);
   final float x_start = CENTER_X + cos(angle) * start_radius;
   final float x_end = CENTER_X + cos(angle) * end_radius;
   final float y_start = CENTER_Y + sin(angle) * start_radius;
   final float y_end = CENTER_Y + sin(angle) * end_radius;
   line(x_start, y_start, x_end, y_end);
 }
-
 
 void drawHint() {
   textSize(22);
@@ -65,23 +90,19 @@ void drawBackground() {
 }
 
 void drawText() {
-  final float angle = angle_is_set ? angle_target : angle_mouse;
+  float angle = wrapAngle(angle_is_set ? angle_target : angle_mouse);
   textSize(25);
   fill(234, 244, 254);
   textAlign(CENTER, BOTTOM);
   text("The target angle is :" + "\n", 0.82 * width, 0.89 * height); 
-  String def_a_str;
+  final String def_a_str = str(round(degrees(angle))) + "\u00b0";
   textSize(50);
-  def_a_str = str(round(degrees(angle) + 90)) + "\u00b0";
-  if (round(degrees(angle) + 90) > 180 && round(degrees(angle) + 90) <= 270) {
-    def_a_str = str(round(degrees(angle) - 270)) + "\u00b0";
-  }
   text(def_a_str, 0.82 * width, 0.93 * height); 
 }
 
 void drawAndUpdateMouse() {
   // compute angle from mouse position
-  angle_mouse = atan2(mouseY - CENTER_Y, mouseX -CENTER_X);
+  angle_mouse = canvasToWorld(atan2(mouseY - CENTER_Y, mouseX -CENTER_X));
   
   // draw compass line
   strokeWeight(2);
@@ -99,9 +120,10 @@ void drawAndUpdateMouse() {
 }
 
 void drawUser() {
+  float angle_user_canvas = worldToCanvas(angle_user);
   // draw the user circle
-  float x_user = CENTER_X + cos(-angle_user_inv) * 0.92 * INNER_RADIUS;
-  float y_user = CENTER_Y + sin(-angle_user_inv) * 0.92 * INNER_RADIUS;
+  float x_user = CENTER_X + cos(angle_user_canvas) * 0.92 * INNER_RADIUS;
+  float y_user = CENTER_Y + sin(angle_user_canvas) * 0.92 * INNER_RADIUS;
   fill(250, 0, 0, 120);
   noStroke();
   circle(x_user, y_user, USER_RADIUS * 2);
@@ -116,7 +138,7 @@ void drawUser() {
       strokeWeight(3);
       tick_l += 3;
     }
-    drawAngledLine(radians(a) - angle_user_inv, INNER_RADIUS - 2 * tick_l, INNER_RADIUS - 0.3 * tick_l);
+    drawAngledLine(radians(a) + angle_user_canvas, INNER_RADIUS - 2 * tick_l, INNER_RADIUS - 0.3 * tick_l);
   }
 }
 
@@ -124,12 +146,6 @@ void drawTarget() {
   stroke(205, 176, 255);
   strokeWeight(8);
   drawAngledLine(angle_target, TICK_RADIUS - 12, TICK_RADIUS + 12);
-}
-
-void setup() {
-  size(800, 600);
-  noSmooth();
-  fill(126);
 }
 
 void draw() {
@@ -156,19 +172,47 @@ void draw() {
   drawUser();
 } //<>//
 
+void sendTarget() {
+  long angle = (long)(wrapAngle(angle_target) / (2 * PI) * ((1L << 32) - 1L));
+  
+  byte data[] = new byte[5];
+  
+  data[0] = byte(angle & 0xff);
+  data[1] = byte((angle >> 8) & 0xff);
+  data[2] = byte((angle >> 16) & 0xff);
+  data[3] = byte((angle >> 24) & 0xff);
+  data[4] = 1;
+  
+  client.write(data);
+}
+
+void sendStop() {
+  byte data[] = new byte[5];
+  
+  data[4] = 0;
+  
+  client.write(data);
+}
+
 void mouseReleased() {
   angle_target = angle_mouse;
   angle_is_set = true;
+  
+  sendTarget();
 }
 
 void keyPressed() {
   if (key == CODED) {
-    if (keyCode == RIGHT) {
-      angle_user_inv -= radians(1);
-    } else if (keyCode == LEFT) {
-      angle_user_inv += radians(1);
+    if (angle_is_set) {
+      if (keyCode == RIGHT) {
+        angle_target -= radians(1);
+      } else if (keyCode == LEFT) {
+        angle_target += radians(1);
+      }
+      sendTarget();
     } 
   } else if (key == 's') {
     angle_is_set = false;
+    sendStop();
   }
 }

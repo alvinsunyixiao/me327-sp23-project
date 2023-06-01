@@ -67,3 +67,12 @@ bool Motors::selectDevice(size_t idx) {
 
   return true;
 }
+
+bool Motors::stopAll() {
+  bool flag = true;
+  for (size_t i = 0; i < num_motors_; ++i) {
+    flag &= this->setAmplitude(i, 0);
+  }
+
+  return flag;
+}

@@ -45,6 +45,8 @@ public:
    */
   bool setDirection(uint32_t direction);
 
+  bool stopAll();
+
 private:
   bool selectDevice(size_t idx);
 
