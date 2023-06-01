@@ -39,11 +39,11 @@ public:
   /**
    * @brief set multiple motor amplitude by giving a direction angle
    * 
-   * @param direction direction in [0, UINT32_MAX] mapped to [0, 2pi]
+   * @param direction direction in full INT32 range mapped to [-pi, pi]
    * @return true     if set direction is succesful  
    * @return false    if fails to set amplitude of any motor
    */
-  bool setDirection(uint32_t direction);
+  bool setDirection(int32_t direction);
 
   /**
    * @brief stop all motor by setting 0 amplitude

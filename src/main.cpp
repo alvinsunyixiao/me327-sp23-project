@@ -22,34 +22,53 @@ void setup() {
   WiFi.mode(WIFI_AP);
   WiFi.softAP("HapticNav", "ME327group9", 10);
   IPAddress ip = WiFi.softAPIP();
-  DEBUG_PRINTF("AP IP address: %s\n", ip.toString().c_str());
+  DEBUG_PRINT("AP IP address: %s\n", ip.toString().c_str());
 
   server.begin();
 }
+
+int32_t angle_user = 0;
+int32_t angle_target;
+bool stopped = true;
 
 void loop() {
   // try to connect to a client
   if (!client) {
     client = server.available();
     if (client) {
-      DEBUG_PRINTF("Connected to a client\n");
+      DEBUG_PRINT("Connected to a client\n");
     }
   }
 
+  // communicate with client
   if (client && client.connected()) {
-    if (client.available()) {
-      uint8_t raw_data[5];
+    // read target
+    uint8_t raw_data[5];
+    if (client.available() >= sizeof(raw_data)) {
       const size_t num_bytes = client.readBytes(raw_data, sizeof(raw_data));
       if (num_bytes == sizeof(raw_data)) {
         if (raw_data[4]) {
-          uint32_t *target_angle = (uint32_t*)raw_data;
-          motors.setDirection(*target_angle);
-          DEBUG_PRINTF("recieved target angle: %lu\n", *target_angle);
+          angle_target = *(int32_t*)raw_data;
+          stopped = false;
+          DEBUG_PRINT("recieved target angle: %d\n", angle_target);
         } else {
-          motors.stopAll();
-          DEBUG_PRINTF("received stop command\n");
+          stopped = true;
         }
       }
     }
+
+    // send user angle to server
+    client.write_P((const char*)&angle_user, sizeof(angle_user));
+    DEBUG_PRINT("sending virtual user angle: %lu\n", angle_user);
+  }
+
+  // TODO: replace this with IMU update
+  angle_user += (1 << 19);
+
+  // convert to stereo vibration
+  if (!stopped) {
+    motors.setDirection(angle_target - angle_user);
+  } else {
+    motors.stopAll();
   }
 }

@@ -141,7 +141,7 @@ void drawUser() {
       strokeWeight(3);
       tick_l += 3;
     }
-    drawAngledLine(radians(a) + angle_user_canvas, INNER_RADIUS - 2 * tick_l, INNER_RADIUS - 0.3 * tick_l);
+    drawAngledLine(radians(a) + angle_user, INNER_RADIUS - 2 * tick_l, INNER_RADIUS - 0.3 * tick_l);
   }
 }
 
@@ -220,4 +220,18 @@ void keyPressed() {
     angle_is_set = false;
     sendStop();
   }
+}
+
+void clientEvent(Client thisClient) {
+  int num_bytes = thisClient.available();
+  if (num_bytes < 4) {
+    return;
+  }
+  int num_read = num_bytes / 4 * 4;
+  byte[] data = thisClient.readBytes(num_read);
+  int angle_user_int =  (data[num_read - 4] & 0xff) |
+                        ((data[num_read - 3] & 0xff) << 8) |
+                        ((data[num_read - 2] & 0xff) << 16) |
+                        ((data[num_read - 1] & 0xff) << 24);
+  angle_user = float(angle_user_int) / pow(2, 32) * 2 * PI;
 }

@@ -12,7 +12,7 @@ void Motors::begin() {
   for (size_t i = 0; i < num_motors_; ++i) {
     this->selectDevice(i);
     if (!drv2605_.begin()) {
-      DEBUG_PRINTF("Failed to initialize DRV2605 #%u\n", i);
+      DEBUG_PRINT("Failed to initialize DRV2605 #%u\n", i);
     }
     
     drv2605_.setMode(DRV2605_MODE_REALTIME);
@@ -31,7 +31,7 @@ bool Motors::setAmplitude(size_t idx, int8_t amplitude) {
   return true;
 }
 
-bool Motors::setDirection(uint32_t direction) {
+bool Motors::setDirection(int32_t direction) {
   bool flag = true;
   for (size_t i = 0; i < num_motors_; ++i) {
     // compute angle offset of each motor
@@ -41,8 +41,8 @@ bool Motors::setDirection(uint32_t direction) {
     int32_t angle_diff = angle_offset - direction;
 
     // motor i is close to the specified direction
-    uint32_t amplitude = 0;
-    if ((uint32_t)abs(angle_diff) <= angle_between_motors_) {
+    int32_t amplitude = 0;
+    if (abs(angle_diff) <= angle_between_motors_) {
       // linear interpolation
       amplitude = (angle_between_motors_ - abs(angle_diff)) / ((angle_between_motors_ >> 7) + 1);
     }

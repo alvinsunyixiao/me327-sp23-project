@@ -24,7 +24,7 @@ void setup() {
 uint32_t direction = 0;
 
 void loop() {
-  DEBUG_PRINTF("setting direction %lu\n", direction);
+  DEBUG_PRINT("setting direction %lu\n", direction);
 
   // output vibration for current direction
   motors.setDirection(direction);
