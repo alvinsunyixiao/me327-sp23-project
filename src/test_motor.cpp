@@ -11,13 +11,13 @@
 Motors motors(NUM_MOTORS);
 
 void setup() {
+  DEBUG_INIT(115200);
+
   // initialize I2C
-  Wire.begin();
+  Wire.begin(SDA1, SCL1, 800000);
 
   // initialize motor manager
   motors.begin();
-
-  DEBUG_INIT(115200);
 }
 
 // initial direction pointing forward
