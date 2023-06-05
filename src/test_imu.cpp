@@ -10,7 +10,7 @@ void setup() {
   DEBUG_INIT(115200);
 
   // initialize I2C
-  Wire.begin(23, 22);
+  Wire.begin(SDA1, SCL1, 800000);
 
   // initialize motor manager
   imu.begin();
@@ -19,8 +19,8 @@ void setup() {
 
 void loop() {
   imu.update();
-  //DEBUG_PRINT("IMU yaw: %f\n", imu.getYaw());
-  DEBUG_PRINT("IMU yaw: %f\n", 0.5);
+  DEBUG_PRINT("IMU yaw: %f\n", imu.getYaw());
+  //DEBUG_PRINT("IMU yaw: %f\n", 0.5);
 
   // 100ms delay
   delay(100);

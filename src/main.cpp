@@ -4,8 +4,10 @@
 
 #include "debug.hpp"
 #include "motor.hpp"
+#include "imu.hpp"
 
 Motors motors(8);
+IMU imu;
 WiFiServer server(4242);
 WiFiClient client;
 
@@ -13,10 +15,13 @@ void setup() {
   DEBUG_INIT(115200);
 
   // initialize I2C
-  Wire.begin();
+  Wire.begin(SDA1, SCL1, 800000);
 
   // initialize motor manager
   motors.begin();
+
+  // intialize IMU
+  imu.begin();
 
   // initialize WiFi
   WiFi.mode(WIFI_AP);
@@ -32,6 +37,10 @@ int32_t angle_target;
 bool stopped = true;
 
 void loop() {
+  // update IMU and read user orientation
+  imu.update();
+  angle_user = imu.getYaw() / PI * INT32_MAX;
+
   // try to connect to a client
   if (!client) {
     client = server.available();
@@ -61,9 +70,6 @@ void loop() {
     client.write_P((const char*)&angle_user, sizeof(angle_user));
     DEBUG_PRINT("sending virtual user angle: %lu\n", angle_user);
   }
-
-  // TODO: replace this with IMU update
-  angle_user += (1 << 19);
 
   // convert to stereo vibration
   if (!stopped) {
