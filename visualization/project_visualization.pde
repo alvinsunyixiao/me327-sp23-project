@@ -128,7 +128,7 @@ void drawUserAngleErrorText() {
   textSize(25);
   fill(234, 244, 254);
   final float angle = wrapAngle(angle_is_set ? angle_target : angle_mouse);
-  String angle_user_error_str = str(round(degrees(angle_user - angle))) + "\u00b0";
+  String angle_user_error_str = str(round(degrees(wrapAngle(angle_user - angle)))) + "\u00b0";
   textSize(50);
   text(angle_user_error_str, 0.82 * width, 0.33 * height);
 }
@@ -245,7 +245,7 @@ void draw() {
   // draw user orientation
   drawUser();
 } //<>//
- //<>//
+ //<>// //<>//
 void sendTarget() {
   long angle = (long)(wrapAngle(angle_target) / (2 * PI) * ((1L << 32) - 1L));
   
