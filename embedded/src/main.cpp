@@ -19,6 +19,10 @@ void setup() {
 
   // initialize motor manager
   motors.begin();
+  motors.setAngleOffset(2, -119304647);
+  motors.setAngleOffset(3, 119304647);
+  motors.setAngleOffset(5, -119304647);
+  motors.setAngleOffset(6, 119304647);
 
   // intialize IMU
   imu.begin();
@@ -56,12 +60,23 @@ void loop() {
     if (client.available() >= sizeof(raw_data)) {
       const size_t num_bytes = client.readBytes(raw_data, sizeof(raw_data));
       if (num_bytes == sizeof(raw_data)) {
-        if (raw_data[4]) {
+        switch (raw_data[4]) {
+        // stop command
+        case 0:
+          stopped = true;
+          break;
+        // set target angle command
+        case 1:
           angle_target = *(int32_t*)raw_data;
           stopped = false;
           DEBUG_PRINT("recieved target angle: %d\n", angle_target);
-        } else {
-          stopped = true;
+          break;
+        // reset IMU command
+        case 2:
+          imu.resetOrientation();
+          break;
+        default:
+          break;
         }
       }
     }

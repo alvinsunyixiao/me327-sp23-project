@@ -53,10 +53,22 @@ public:
    */
   bool stopAll();
 
+  /**
+   * @brief Set the motor mounting angle offset
+   *
+   * @param idx     index of the motor
+   * @param offset  offset angle compared to uniform mounting
+   * @return true   if success
+   * @return false  otherwise (idx out of bound)
+   */
+  bool setAngleOffset(size_t idx, int32_t offset);
+
 private:
   bool selectDevice(size_t idx);
 
   size_t num_motors_;
   uint32_t angle_between_motors_;
+  uint32_t motor_range_;
   Adafruit_DRV2605 drv2605_;
+  int32_t motor_offset_[20];
 };

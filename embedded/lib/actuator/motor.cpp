@@ -5,7 +5,12 @@
 
 Motors::Motors(size_t num_motors) 
 : num_motors_(num_motors),
-  angle_between_motors_(UINT32_MAX / num_motors) {}
+  angle_between_motors_(UINT32_MAX / num_motors),
+  motor_range_(angle_between_motors_ * 2.) {
+  for (size_t i = 0; i < num_motors; ++i) {
+    motor_offset_[i] = 0;
+  }
+}
 
 void Motors::begin() {
   // initialize all motors
@@ -35,16 +40,16 @@ bool Motors::setDirection(int32_t direction) {
   bool flag = true;
   for (size_t i = 0; i < num_motors_; ++i) {
     // compute angle offset of each motor
-    uint32_t angle_offset = i * angle_between_motors_;
+    uint32_t angle_offset = i * angle_between_motors_ + motor_offset_[i];
 
     // compute angle difference with natural overflow wrapping
     int32_t angle_diff = angle_offset - direction;
 
     // motor i is close to the specified direction
     int32_t amplitude = 0;
-    if (abs(angle_diff) <= angle_between_motors_) {
+    if (abs(angle_diff) <= motor_range_) {
       // linear interpolation
-      amplitude = (angle_between_motors_ - abs(angle_diff)) / ((angle_between_motors_ >> 7) + 1);
+      amplitude = (motor_range_ - abs(angle_diff)) / ((motor_range_ >> 7) + 1);
     }
     flag &= this->setAmplitude(i, (int8_t)amplitude);
   }
@@ -73,4 +78,15 @@ bool Motors::stopAll() {
   }
 
   return flag;
+}
+
+bool Motors::setAngleOffset(size_t idx, int32_t offset) {
+  // idx out of bound
+  if (idx < 0 || idx >= num_motors_) {
+    return false;
+  }
+
+  motor_offset_[idx] = offset;
+
+  return true;
 }
