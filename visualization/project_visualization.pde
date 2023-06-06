@@ -66,6 +66,13 @@ void drawHint() {
   else text("Press s to remove target!\n", 0.82 * width, 0.82 * height);
 }
 
+void drawUserAngleErrorHint() {
+  textSize(22);
+  fill(134, 150, 254);
+  textAlign(CENTER, BOTTOM);
+  text("Current user angle error:\n", 0.82 * width, 0.26 * height); 
+}
+
 void drawBackground() {
   // draw outer circle
   fill(82, 109, 130);
@@ -103,6 +110,15 @@ void drawText() {
   text(angle_str, 0.82 * width, 0.93 * height);
 }
 
+void drawUserAngleErrorText() {
+  textSize(25);
+  fill(234, 244, 254);
+  final float angle = wrapAngle(angle_is_set ? angle_target : angle_mouse);
+  String angle_user_error_str = str(round(degrees(angle_user - angle))) + "\u00b0";
+  textSize(50);
+  text(angle_user_error_str, 0.82 * width, 0.33 * height);
+}
+
 void drawAndUpdateMouse() {
   // compute angle from mouse position
   angle_mouse = canvasToWorld(atan2(mouseY - CENTER_Y, mouseX -CENTER_X));
@@ -125,6 +141,9 @@ void drawAndUpdateMouse() {
 void drawUser() {
   float angle_user_canvas = worldToCanvas(angle_user);
   // draw the user circle
+  float angle_define = wrapAngle(angle_is_set ? angle_target : angle_mouse);
+  //if (angle_is_set && abs(angle_define - angle_user) 
+  
   float x_user = CENTER_X + cos(angle_user_canvas) * 0.92 * INNER_RADIUS;
   float y_user = CENTER_Y + sin(angle_user_canvas) * 0.92 * INNER_RADIUS;
   fill(250, 0, 0, 120);
@@ -159,6 +178,10 @@ void draw() {
   // hint message
   drawHint();
   drawText();
+  
+  // user message
+  drawUserAngleErrorHint();
+  drawUserAngleErrorText();
   
   // draw background
   drawBackground();
@@ -197,6 +220,14 @@ void sendStop() {
   client.write(data);
 }
 
+void sendResetIMU() {
+  byte data[] = new byte[5];
+  
+  data[4] = 2;
+  
+  client.write(data);
+}
+
 void mouseReleased() {
   angle_target = angle_mouse;
   angle_is_set = true;
@@ -219,6 +250,8 @@ void keyPressed() {
     // send the command to stop all motors
     angle_is_set = false;
     sendStop();
+  } else if (key == 'r') {
+    sendResetIMU();
   }
 }
 
