@@ -21,8 +21,10 @@ final int SERVER_PORT = 4242;
 
 int m;  // timer
 int start_ms;
+boolean is_timer_on = false;
 boolean green_timer_on = false;
 int green_timer_start;
+float navigation_time = 0;
 
 float angle_target;
 float angle_mouse;
@@ -78,6 +80,13 @@ void drawUserAngleErrorHint() {
   text("Current user angle error:\n", 0.82 * width, 0.26 * height); 
 }
 
+void drawUserNavigationTimeHint() {
+  textSize(22);
+  fill(134, 150, 254);
+  textAlign(CENTER, BOTTOM);
+  text("Total time used:\n", 0.82 * width, 0.45 * height); 
+}
+
 void drawBackground() {
   // draw outer circle
   fill(82, 109, 130);
@@ -124,6 +133,20 @@ void drawUserAngleErrorText() {
   text(angle_user_error_str, 0.82 * width, 0.33 * height);
 }
 
+void drawUserNavigationTimeText() {
+  textSize(25);
+  fill(234, 244, 254);
+  String navigation_time_str;
+  if (navigation_time == 0) {
+    navigation_time_str = "Not got yet";
+  }
+  else {
+    navigation_time_str = str(navigation_time - 3) + "s";
+  }
+  textSize(40);
+  text(navigation_time_str, 0.82 * width, 0.52 * height);
+}
+
 void drawAndUpdateMouse() {
   // compute angle from mouse position
   angle_mouse = canvasToWorld(atan2(mouseY - CENTER_Y, mouseX -CENTER_X));
@@ -150,10 +173,26 @@ void drawUser() {
   float y_user = CENTER_Y + sin(angle_user_canvas) * 0.92 * INNER_RADIUS;
   float angle_define = wrapAngle(angle_is_set ? angle_target : angle_mouse);
   if (angle_is_set && abs(angle_define - angle_user) < (8.0 / 180.0 * PI)) {
-    green_timer_on = true;
+    if (!green_timer_on) {
+      green_timer_on = true;
+      green_timer_start = m;
+    }
+    else {
+      if ((m - green_timer_start) >= 3000) {
+        if (is_timer_on) {
+          int navigation_time_ms = m - start_ms;
+          is_timer_on = false;
+          navigation_time = float(navigation_time_ms) / 1000;
+        }
+      }
+    }
     fill(0, 250, 0, 120);
   }
-  else {fill(250, 0, 0, 120);}
+  else {
+    green_timer_on = false;
+    navigation_time = 0;
+    fill(250, 0, 0, 120);
+  }
   noStroke();
   circle(x_user, y_user, USER_RADIUS * 2);
   
@@ -190,6 +229,8 @@ void draw() {
   // user message
   drawUserAngleErrorHint();
   drawUserAngleErrorText();
+  drawUserNavigationTimeHint();
+  drawUserNavigationTimeText();
   
   // draw background
   drawBackground();
@@ -239,6 +280,7 @@ void sendResetIMU() {
 void mouseReleased() {
   angle_target = angle_mouse;
   angle_is_set = true;
+  is_timer_on = false;
   start_ms = m;
   
   sendTarget();
