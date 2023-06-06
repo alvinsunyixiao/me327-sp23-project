@@ -141,7 +141,7 @@ void drawUserNavigationTimeText() {
     navigation_time_str = "Not got yet";
   }
   else {
-    navigation_time_str = str(navigation_time - 3) + "s";
+    navigation_time_str = nf(navigation_time - 3, 0, 2) + "s";
   }
   textSize(40);
   text(navigation_time_str, 0.82 * width, 0.52 * height);
@@ -175,10 +175,10 @@ void drawUser() {
   if (angle_is_set && abs(angle_define - angle_user) < (8.0 / 180.0 * PI)) {
     if (!green_timer_on) {
       green_timer_on = true;
-      green_timer_start = m;
+      green_timer_start = millis();
     }
     else {
-      if ((m - green_timer_start) >= 3000) {
+      if ((millis() - green_timer_start) >= 3000) {
         if (is_timer_on) {
           int navigation_time_ms = m - start_ms;
           is_timer_on = false;
@@ -190,7 +190,6 @@ void drawUser() {
   }
   else {
     green_timer_on = false;
-    navigation_time = 0;
     fill(250, 0, 0, 120);
   }
   noStroke();
@@ -246,7 +245,7 @@ void draw() {
   // draw user orientation
   drawUser();
 } //<>//
-
+ //<>//
 void sendTarget() {
   long angle = (long)(wrapAngle(angle_target) / (2 * PI) * ((1L << 32) - 1L));
   
@@ -280,8 +279,9 @@ void sendResetIMU() {
 void mouseReleased() {
   angle_target = angle_mouse;
   angle_is_set = true;
-  is_timer_on = false;
-  start_ms = m;
+  is_timer_on = true;
+  start_ms = millis();
+  navigation_time = 0;
   
   sendTarget();
 }
