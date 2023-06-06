@@ -19,6 +19,11 @@ final float CENTER_Y = WINDOW_HEIGHT / 2;
 final String SERVER_IP_ADDRESS = "192.168.4.1";
 final int SERVER_PORT = 4242;
 
+int m;  // timer
+int start_ms;
+boolean green_timer_on = false;
+int green_timer_start;
+
 float angle_target;
 float angle_mouse;
 float angle_user = 0;
@@ -141,12 +146,14 @@ void drawAndUpdateMouse() {
 void drawUser() {
   float angle_user_canvas = worldToCanvas(angle_user);
   // draw the user circle
-  float angle_define = wrapAngle(angle_is_set ? angle_target : angle_mouse);
-  //if (angle_is_set && abs(angle_define - angle_user) 
-  
   float x_user = CENTER_X + cos(angle_user_canvas) * 0.92 * INNER_RADIUS;
   float y_user = CENTER_Y + sin(angle_user_canvas) * 0.92 * INNER_RADIUS;
-  fill(250, 0, 0, 120);
+  float angle_define = wrapAngle(angle_is_set ? angle_target : angle_mouse);
+  if (angle_is_set && abs(angle_define - angle_user) < (8.0 / 180.0 * PI)) {
+    green_timer_on = true;
+    fill(0, 250, 0, 120);
+  }
+  else {fill(250, 0, 0, 120);}
   noStroke();
   circle(x_user, y_user, USER_RADIUS * 2);
   
@@ -173,7 +180,8 @@ void drawTarget() {
 void draw() {
   background(39, 55, 77);
   
-  /* outer circle - define the orientation  -- start */
+  // start timer
+  m = millis();
   
   // hint message
   drawHint();
@@ -231,6 +239,7 @@ void sendResetIMU() {
 void mouseReleased() {
   angle_target = angle_mouse;
   angle_is_set = true;
+  start_ms = m;
   
   sendTarget();
 }
